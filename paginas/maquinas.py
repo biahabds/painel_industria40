@@ -15,7 +15,7 @@ LIMITES = {"temperature_c": (80, 90), "vibration_mm_s": (4.5, 7)}  # atenção, 
 
 
 def render(ctx):
-    ui.cabecalho("🌡️ Monitoramento de máquinas",
+    ui.cabecalho("Monitoramento de máquinas",
                  "Telemetria (machine_telemetry) agregada no banco por máquina e por intervalo de tempo")
     ultima = dados.telemetria_ultima(ctx)
     resumo = kpis.resumo_telemetria(dados.telemetria_resumo(ctx))

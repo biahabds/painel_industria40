@@ -47,7 +47,7 @@ def _graficos(prod, vend, desg, risco):
 
 
 def render(ctx):
-    ui.cabecalho("🎯 Respostas gerenciais e recomendações",
+    ui.cabecalho("Respostas gerenciais e recomendações",
                  "Calculadas automaticamente a partir do banco, para o período e filtros selecionados")
     prod = dados.producao(ctx)
     vend = dados.vendas(ctx)
@@ -64,8 +64,9 @@ def render(ctx):
     for i, r in enumerate(resp):
         with cols[i % 2]:
             with st.container(border=True):
-                st.markdown(f"**{r['n']}. {r['pergunta']}**")
-                st.markdown(f"### {r['resposta']}")
+                st.markdown(f'<div class="perg">Pergunta {r["n"]}</div>'
+                            f'<div class="perg-txt">{r["pergunta"]}</div>'
+                            f'<div class="resp">{ui.rotulo(r["resposta"])}</div>', unsafe_allow_html=True)
                 ui.nota(r["evidencia"])
                 if r["n"] in graf:
                     with st.expander("Ver evidência"):
@@ -83,8 +84,9 @@ def render(ctx):
     ui.nota("Índice de risco (premissa da equipe) = 40% desgaste máximo + 30% % de leituras em alerta + "
             "15% vibração média (7 mm/s = 100%) + 15% taxa de rejeição (10% = 100%).")
 
-    st.markdown("### 📋 Recomendações para a direção")
+    st.markdown("#### Recomendações para a direção")
     for i, r in enumerate(kpis.gerar_recomendacoes(prod, vend, desg, risco), 1):
-        st.markdown(f'<div class="card-ok"><b>{i}. {r["titulo"]}</b><br>'
-                    f'<span class="nota">📊 Evidência: {r["base"]}</span><br>✅ {r["acao"]}</div>',
+        st.markdown(f'<div class="rec"><div class="num">{i}</div><div><b>{r["titulo"]}</b>'
+                    f'<p><span class="ms">query_stats</span> <b>Evidência:</b> {r["base"]}</p>'
+                    f'<p><span class="ms">task_alt</span> <b>Ação:</b> {r["acao"]}</p></div></div>',
                     unsafe_allow_html=True)

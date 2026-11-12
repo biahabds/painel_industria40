@@ -48,6 +48,9 @@ st.select_slider = lambda label, opts, value=None, **k: value
 st.number_input = lambda label, mn, mx, val, *a, **k: val
 st.date_input = lambda label, value=None, **k: value
 st.button = lambda *a, **k: False
+st.segmented_control = lambda label, opts, default=None, **k: default
+st.html = lambda *a, **k: None
+st.write = lambda *a, **k: None
 st.rerun = lambda: None
 
 
@@ -80,7 +83,7 @@ st.errors = MagicMock()
 st.secrets = {}
 paginas_registradas = []
 st.Page = lambda fn, **k: paginas_registradas.append((k["title"], fn))
-st.navigation = lambda p: MagicMock()
+st.navigation = lambda p, **k: MagicMock()
 sys.modules["streamlit"] = st
 
 # SQLAlchemy stub (o db é substituído abaixo)

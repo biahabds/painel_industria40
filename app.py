@@ -8,7 +8,7 @@ from datetime import datetime, time as dtime, timedelta, timezone
 
 import streamlit as st
 
-st.set_page_config(page_title="Radar Industrial 4.0", page_icon="📡", layout="wide",
+st.set_page_config(page_title="Radar Industrial 4.0", page_icon=":material/precision_manufacturing:", layout="wide",
                    initial_sidebar_state="expanded")
 
 from core import db, ui  # noqa: E402
@@ -34,9 +34,14 @@ PERIODOS = {
 # ---------------------------------------------------------------------------
 # Barra lateral: filtros e atualização automática
 # ---------------------------------------------------------------------------
+SLUGS = ["executivo", "producao", "vendas", "producao-vendas", "maquinas", "manutencao",
+         "financeiro", "respostas", "dados"]
+
 with st.sidebar:
-    st.markdown("### 📡 Radar Industrial 4.0")
+    ui.marca()
     st.caption(NOME_EQUIPE)
+    ui.seletor_tema(SLUGS)
+    st.divider()
 
     st.markdown("**Período**")
     periodo = st.selectbox("Período", list(PERIODOS), index=5, label_visibility="collapsed")
@@ -69,7 +74,7 @@ with st.sidebar:
                                  disabled=not auto)
     st.caption("Mecanismo: **polling** — consulta periódica automática ao PostgreSQL do "
                "Supabase (não é assinatura nativa Supabase Realtime).")
-    if st.button("🔄 Limpar cache e recarregar", use_container_width=True):
+    if st.button("Limpar cache e recarregar", icon=":material/refresh:", width="stretch"):
         st.cache_data.clear()
         st.rerun()
 
@@ -106,12 +111,16 @@ def barra_ao_vivo():
         ult_txt = ult.tz_convert(BR_TZ).strftime("%d/%m %H:%M:%S") if ult is not None else "—"
         atraso = (agora_bd - ult).total_seconds() if ult is not None and agora_bd is not None else None
         ativo = atraso is not None and atraso < 90
-        ponto = '<span class="pulso"></span>' if ativo else "⏸️ "
-        sim = "simulador enviando dados" if ativo else "sem dados novos no último 1,5 min (simulador parado?)"
-        modo = f"polling a cada {intervalo}s" if auto else "atualização automática desligada"
-        ui.nota(f"{ponto}<b>{modo}</b> · última telemetria no banco: {ult_txt} · "
-                f"{int(p['telemetria_1min'])} leituras no último minuto · {sim} · "
-                f"painel atualizado às {datetime.now(BR_TZ).strftime('%H:%M:%S')}")
+        estado = (f'<span class="chip ok"><span class="pulso"></span>Simulador enviando dados</span>' if ativo
+                  else '<span class="chip off"><span class="ms">pause_circle</span> Sem dados novos no último 1,5 min</span>')
+        modo = (f'<span class="ms">sync</span> Polling a cada {intervalo} s' if auto
+                else '<span class="ms">sync_disabled</span> Atualização automática desligada')
+        st.markdown(
+            f'<div class="aovivo">{estado}<span class="chip">{modo}</span>'
+            f'<span class="chip"><span class="ms">sensors</span> Última telemetria: {ult_txt}</span>'
+            f'<span class="chip"><span class="ms">speed</span> {int(p["telemetria_1min"])} leituras/min</span>'
+            f'<span class="chip"><span class="ms">schedule</span> Atualizado às '
+            f'{datetime.now(BR_TZ).strftime("%H:%M:%S")}</span></div>', unsafe_allow_html=True)
     except db.ErroBanco:
         pass
 
@@ -119,7 +128,7 @@ def barra_ao_vivo():
 def executar(render):
     def pagina():
         if not conexao_ok:
-            st.error(f"⚠️ Não foi possível conectar ao banco de dados.\n\n{erro_conexao}")
+            st.error(icon=":material/cloud_off:", body=f"Não foi possível conectar ao banco de dados.\n\n{erro_conexao}")
             st.button("Tentar novamente", on_click=st.cache_resource.clear)
             return
 
@@ -129,28 +138,37 @@ def executar(render):
             try:
                 render(montar_contexto())
             except db.ErroBanco as e:
-                st.error(f"⚠️ Erro de comunicação com o Supabase. O painel tentará de novo "
+                st.error(icon=":material/sync_problem:", body=f"Erro de comunicação com o Supabase. O painel tentará de novo "
                          f"no próximo ciclo.\n\n`{e}`")
         corpo()
     pagina.__name__ = render.__module__.split(".")[-1]
     return pagina
 
 
-paginas = [
-    st.Page(executar(executivo.render), title="Visão executiva", icon="🏭",
-            url_path="executivo", default=True),
-    st.Page(executar(producao.render), title="Produção", icon="⚙️", url_path="producao"),
-    st.Page(executar(vendas.render), title="Vendas", icon="🛒", url_path="vendas"),
-    st.Page(executar(producao_vendas.render), title="Produção × Vendas", icon="⚖️",
-            url_path="producao-vendas"),
-    st.Page(executar(maquinas.render), title="Monitoramento de máquinas", icon="🌡️",
-            url_path="maquinas"),
-    st.Page(executar(manutencao.render), title="Manutenção e desgaste", icon="🔧",
-            url_path="manutencao"),
-    st.Page(executar(financeiro.render), title="Financeiro", icon="💰", url_path="financeiro"),
-    st.Page(executar(respostas.render), title="Respostas e recomendações", icon="🎯",
-            url_path="respostas"),
-    st.Page(executar(dados_conexao.render), title="Dados e conexão", icon="🗄️",
-            url_path="dados"),
-]
-st.navigation(paginas).run()
+# Menu no topo, agrupado por área; a barra lateral fica só com tema e filtros.
+paginas = {
+    "Visão geral": [
+        st.Page(executar(executivo.render), title="Visão executiva", icon=":material/dashboard:",
+                url_path="executivo", default=True),
+    ],
+    "Operação": [
+        st.Page(executar(producao.render), title="Produção", icon=":material/factory:", url_path="producao"),
+        st.Page(executar(maquinas.render), title="Monitoramento de máquinas", icon=":material/sensors:",
+                url_path="maquinas"),
+        st.Page(executar(manutencao.render), title="Manutenção e desgaste", icon=":material/build:",
+                url_path="manutencao"),
+    ],
+    "Comercial": [
+        st.Page(executar(vendas.render), title="Vendas", icon=":material/shopping_cart:", url_path="vendas"),
+        st.Page(executar(producao_vendas.render), title="Produção × Vendas", icon=":material/compare_arrows:",
+                url_path="producao-vendas"),
+        st.Page(executar(financeiro.render), title="Financeiro", icon=":material/payments:", url_path="financeiro"),
+    ],
+    "Conclusões": [
+        st.Page(executar(respostas.render), title="Respostas e recomendações", icon=":material/insights:",
+                url_path="respostas"),
+        st.Page(executar(dados_conexao.render), title="Dados e conexão", icon=":material/database:",
+                url_path="dados"),
+    ],
+}
+st.navigation(paginas, position="top").run()

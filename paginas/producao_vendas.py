@@ -6,7 +6,7 @@ from core import dados, kpis, ui
 
 
 def render(ctx):
-    ui.cabecalho("⚖️ Produção × Vendas", "Quanto do que foi produzido e aprovado foi efetivamente vendido")
+    ui.cabecalho("Produção × Vendas", "Quanto do que foi produzido e aprovado foi efetivamente vendido")
     st.warning("**Atenção:** a diferença entre produção aprovada e vendas **não representa estoque físico**. "
                "O banco não possui módulo de movimentação de estoque (entradas, saídas, devoluções, "
                "estoque inicial). O saldo é apenas um indicador de descompasso entre fabricar e vender.")
@@ -19,9 +19,9 @@ def render(ctx):
 
     apr, ven = pv["aprovado"].sum(), pv["vendido"].sum()
     c = st.columns(4)
-    c[0].metric("Produzido", ui.fint(pv["produzido"].sum()))
-    c[1].metric("Aprovado", ui.fint(apr))
-    c[2].metric("Vendido (não cancelado)", ui.fint(ven))
+    c[0].metric("Produzido", ui.fcurto(pv["produzido"].sum()), help=ui.fint(pv["produzido"].sum()))
+    c[1].metric("Aprovado", ui.fcurto(apr), help=ui.fint(apr))
+    c[2].metric("Vendido (não cancelado)", ui.fcurto(ven), help=ui.fint(ven))
     c[3].metric("Giro de venda", ui.fpct(ven / apr if apr else float("nan")),
                 help="Vendido ÷ aprovado. Abaixo de 100% = produção acima da venda no período.")
 

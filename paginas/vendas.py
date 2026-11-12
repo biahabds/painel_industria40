@@ -5,7 +5,7 @@ from core import dados, kpis, ui
 
 
 def render(ctx):
-    ui.cabecalho("🛒 Análise de vendas",
+    ui.cabecalho("Análise de vendas",
                  "Pedidos de venda (sales_orders). Faturamento considera pedidos não cancelados.")
     v = dados.vendas(ctx)
     if v.empty:
@@ -15,11 +15,11 @@ def render(ctx):
     fat = v["receita_valida"].sum()
     validos = int(v["valido"].sum())
     c = st.columns(5)
-    c[0].metric("Faturamento", ui.fbrl(fat))
+    c[0].metric("Faturamento", ui.fcurto(fat, moeda=True), help=ui.fbrl(fat))
     c[1].metric("Pedidos", ui.fint(len(v)), f"{ui.fint(len(v) - validos)} cancelados", delta_color="off")
     c[2].metric("Ticket médio", ui.fbrl(fat / validos if validos else float("nan")),
                 help="Faturamento ÷ pedidos não cancelados")
-    c[3].metric("Unidades vendidas", ui.fint(v["qtd_valida"].sum()))
+    c[3].metric("Unidades vendidas", ui.fcurto(v["qtd_valida"].sum()), help=ui.fint(v["qtd_valida"].sum()))
     c[4].metric("Preço médio/unid.", ui.fbrl(fat / v["qtd_valida"].sum() if v["qtd_valida"].sum() else float("nan")))
 
     vp = kpis.vendas_por(v, "product_name")
@@ -49,11 +49,11 @@ def render(ctx):
         fig.update_layout(showlegend=False, xaxis_title=None)
         ui.grafico(fig)
 
-    st.markdown("#### 📈 Evolução das vendas")
+    st.markdown("#### Evolução das vendas")
     sv = kpis.serie_temporal(v, "created_at", {"faturamento": ("receita_valida", "sum"),
                                                "pedidos": ("order_number", "count")}, ctx.freq_pandas)
     fig = px.area(sv, x="created_at", y="faturamento", title="Faturamento ao longo do tempo (R$)")
-    fig.update_traces(line_color=ui.COR["primaria"], fillcolor="rgba(245,165,36,.25)")
+    fig.update_traces(line_color=ui.COR["primaria"], fillcolor=ui.COR["primaria"] + "33")
     fig.update_layout(xaxis_title=None)
     ui.grafico(fig, 340)
 

@@ -6,8 +6,8 @@ from core import dados, kpis, ui
 
 
 def render(ctx):
-    ui.cabecalho("💰 Análise financeira", "Receitas, custos estimados e margem estimada por produto")
-    with st.expander("📌 Premissas adotadas pela equipe (leia antes de interpretar)", expanded=False):
+    ui.cabecalho("Análise financeira", "Receitas, custos estimados e margem estimada por produto")
+    with st.expander("Premissas adotadas pela equipe (leia antes de interpretar)", expanded=False, icon=":material/info:"):
         st.markdown("""
 - **Receita** = soma de `total_amount` dos pedidos **não cancelados** (`order_status ≠ CANCELADO`).
 - **Custo estimado de produção** = `qty_produced × unit_cost` de cada lote (inclui as peças rejeitadas).
@@ -31,12 +31,13 @@ def render(ctx):
     receita = fp["faturamento"].sum()
     cpv = fp["cpv_estimado"].sum()
     c = st.columns(5)
-    c[0].metric("Receita", ui.fbrl(receita))
-    c[1].metric("Custo estimado de produção", ui.fbrl(fp["custo_producao"].sum()))
-    c[2].metric("CPV estimado", ui.fbrl(cpv))
-    c[3].metric("Margem bruta estimada", ui.fbrl(receita - cpv),
+    c[0].metric("Receita", ui.fcurto(receita, moeda=True), help=ui.fbrl(receita))
+    c[1].metric("Custo de produção", ui.fcurto(fp["custo_producao"].sum(), moeda=True),
+                help="Custo estimado de produção: " + ui.fbrl(fp["custo_producao"].sum()))
+    c[2].metric("CPV estimado", ui.fcurto(cpv, moeda=True), help=ui.fbrl(cpv))
+    c[3].metric("Margem bruta estimada", ui.fcurto(receita - cpv, moeda=True),
                 ui.fpct((receita - cpv) / receita) if receita else None, delta_color="off")
-    c[4].metric("Custo dos rejeitados", ui.fbrl(fp["custo_rejeitados"].sum()), delta_color="off",
+    c[4].metric("Custo dos rejeitados", ui.fcurto(fp["custo_rejeitados"].sum(), moeda=True), delta_color="off",
                 delta=ui.fpct(fp["custo_rejeitados"].sum() / fp["custo_producao"].sum())
                 + " do custo" if fp["custo_producao"].sum() else None)
 
@@ -53,7 +54,8 @@ def render(ctx):
         fig = px.bar(d, x="margem_pct", y="product_name", orientation="h", title="Margem bruta estimada por produto",
                      text=d["margem_pct"].map(ui.fpct))
         fig.update_traces(marker_color=ui.COR["ok"], textposition="outside", cliponaxis=False)
-        fig.update_layout(xaxis_tickformat=".0%", yaxis_title=None)
+        fig.update_layout(xaxis_tickformat=".0%", yaxis_title=None,
+                          xaxis_range=[0, float(d["margem_pct"].max()) * 1.18])
         ui.grafico(fig)
 
     a, b = st.columns(2)

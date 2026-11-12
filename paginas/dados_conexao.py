@@ -15,7 +15,7 @@ def _host_mascarado() -> str:
 
 
 def render(ctx):
-    ui.cabecalho("🗄️ Dados e conexão com o Supabase",
+    ui.cabecalho("Dados e conexão com o Supabase",
                  "Evidência de conexão, estrutura das seis tabelas, relacionamentos e consultas utilizadas")
 
     with st.container(border=True):
@@ -53,14 +53,14 @@ def render(ctx):
         with t:
             ui.tabela(colunas[colunas["tabela"] == nome].drop(columns="tabela"))
             st.caption("Registros mais recentes:")
-            st.dataframe(db.amostra(nome, 8), use_container_width=True, hide_index=True)
+            st.dataframe(db.amostra(nome, 8), width="stretch", hide_index=True)
 
-    st.markdown("#### 🔴 Chegada de dados em tempo real")
+    st.markdown("#### Chegada de dados em tempo real")
     ultimas = db.amostra("machine_telemetry", 12)
     if not ultimas.empty:
         ultimas["recorded_at"] = (pd.to_datetime(ultimas["recorded_at"], utc=True)
                                   .dt.tz_convert(BR_TZ).dt.strftime("%d/%m %H:%M:%S"))
-    st.dataframe(ultimas, use_container_width=True, hide_index=True)
+    st.dataframe(ultimas, width="stretch", hide_index=True)
     ui.nota("Com o simulador ligado, novas linhas aparecem aqui a cada ~5 s sem recarregar a página. "
             "Mecanismo: polling (st.fragment com run_every) + cache de poucos segundos.")
 

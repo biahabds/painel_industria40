@@ -5,7 +5,7 @@ from core import dados, kpis, ui
 
 
 def render(ctx):
-    ui.cabecalho("⚙️ Análise de produção",
+    ui.cabecalho("Análise de produção",
                  "Volume, qualidade, tempo de ciclo, paradas e produtividade (production_events + machines)")
     prod = dados.producao(ctx)
     if prod.empty:
@@ -14,12 +14,13 @@ def render(ctx):
 
     c = st.columns(5)
     c[0].metric("Lotes", ui.fint(len(prod)))
-    c[1].metric("Produzido", ui.fint(prod["qty_produced"].sum()))
-    c[2].metric("Rejeitado", ui.fint(prod["qty_rejected"].sum()),
+    c[1].metric("Produzido", ui.fcurto(prod["qty_produced"].sum()),
+                help=ui.fint(prod["qty_produced"].sum()) + " unidades")
+    c[2].metric("Rejeitado", ui.fcurto(prod["qty_rejected"].sum()),
                 f"{ui.fpct(prod['qty_rejected'].sum() / prod['qty_produced'].sum(), 2)} de rejeição",
                 delta_color="off")
     c[3].metric("Tempo de ciclo médio", f"{ui.fnum(prod['cycle_time_seconds'].mean())} s")
-    c[4].metric("Tempo de parada total", f"{ui.fint(prod['downtime_minutes'].sum())} min",
+    c[4].metric("Parada total", f"{ui.fcurto(prod['downtime_minutes'].sum())} min",
                 f"média {ui.fnum(prod['downtime_minutes'].mean())} min/lote", delta_color="off")
 
     pm = kpis.producao_por(prod, "machine_code")
@@ -70,7 +71,7 @@ def render(ctx):
         fig.update_layout(xaxis_title=None)
         ui.grafico(fig)
 
-    st.markdown("#### 🏁 Comparação de produtividade entre máquinas")
+    st.markdown("#### Comparação de produtividade entre máquinas")
     prodt = kpis.produtividade_maquinas(prod)
     ui.tabela(prodt[["machine_code", "lotes", "produzido", "aprovado", "taxa_rejeicao",
                      "aprovadas_por_hora", "capacidade_nominal_h", "uso_capacidade",

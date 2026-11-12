@@ -1,13 +1,35 @@
+# Identidade visual da equipe: verde-petróleo + índigo, com tema claro e escuro.
+# O tema ativo é escolhido pelo botão "Tema" na barra lateral do painel.
 [theme]
-base = "dark"
-primaryColor = "#F5A524"
-backgroundColor = "#0B1220"
-secondaryBackgroundColor = "#131C2E"
-textColor = "#E6EDF7"
-font = "sans serif"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFontWeights = [700, 600, 600, 600, 600, 600]
+baseRadius = "0.75rem"
+showWidgetBorder = true
+
+[theme.light]
+primaryColor = "#0F8B8D"
+backgroundColor = "#F4F6F8"
+secondaryBackgroundColor = "#E8EEF2"
+textColor = "#1B2430"
+borderColor = "#D3DCE4"
+linkColor = "#4F5BD5"
+dataframeHeaderBackgroundColor = "#DCE6EC"
+
+[theme.dark]
+primaryColor = "#2CC1B4"
+backgroundColor = "#10161D"
+secondaryBackgroundColor = "#18212B"
+textColor = "#E4EAF0"
+borderColor = "#2A3644"
+linkColor = "#8F9BFF"
+dataframeHeaderBackgroundColor = "#1F2A36"
 
 [server]
 runOnSave = false
 
 [browser]
 gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"

@@ -5,7 +5,7 @@ from core import dados, kpis, ui
 
 
 def render(ctx):
-    ui.cabecalho("🔧 Manutenção e desgaste de componentes",
+    ui.cabecalho("Manutenção e desgaste de componentes",
                  "Estado atual (parts_wear) e histórico de medições (wear_events)")
     atual = dados.desgaste_atual(ctx)
     if atual.empty:
@@ -22,14 +22,17 @@ def render(ctx):
                 atual.loc[atual["estimated_remaining_hours"].idxmin(), "componente"], delta_color="off")
 
     if not acima90.empty:
-        st.error("🚨 **Crítico (≥ 90%)** — substituir com prioridade: " +
-                 ", ".join(f"{r.componente} ({ui.fnum(r.wear_pct)}%)" for r in acima90.itertuples()))
+        urgente = acima90.sort_values("estimated_remaining_hours").iloc[0]
+        st.error(f"**{len(acima90)} componente(s) em situação crítica (≥ 90%)** — substituir com prioridade. "
+                 f"Mais urgente: {urgente['componente']}, com ~{ui.fnum(urgente['estimated_remaining_hours'])} h "
+                 "de vida estimada. Lista completa na tabela abaixo.", icon=":material/emergency_home:")
     atencao = acima75[acima75["wear_pct"] < acima75["critical_threshold_pct"]]
     if not atencao.empty:
-        st.warning("⚠️ **Atenção (≥ 75%)** — programar manutenção: " +
-                   ", ".join(f"{r.componente} ({ui.fnum(r.wear_pct)}%)" for r in atencao.itertuples()))
+        st.warning(f"**{len(atencao)} componente(s) em atenção (≥ 75%)** — programar manutenção: " +
+                   ", ".join(f"{r.componente} ({ui.fnum(r.wear_pct)}%)" for r in atencao.itertuples()),
+                   icon=":material/warning:")
     if acima75.empty:
-        st.success("✅ Nenhum componente acima de 75% de desgaste.")
+        st.success("Nenhum componente acima de 75% de desgaste.", icon=":material/check_circle:")
 
     d = atual.sort_values("wear_pct")
     fig = px.bar(d, x="wear_pct", y="componente", orientation="h", color="situacao",
@@ -59,7 +62,7 @@ def render(ctx):
     fig.update_layout(xaxis_title=None, legend_title=None)
     ui.grafico(fig)
 
-    st.markdown("#### 📉 Histórico de evolução do desgaste")
+    st.markdown("#### Histórico de evolução do desgaste")
     hist = dados.desgaste_historico(ctx)
     if hist.empty:
         ui.sem_dados("Sem medições de desgaste no período.")
@@ -76,7 +79,7 @@ def render(ctx):
 
         prev = kpis.taxa_desgaste_por_hora(hist)
         if not prev.empty:
-            st.markdown("#### 🔮 Previsão simples: horas até 90% no ritmo atual")
+            st.markdown("#### Previsão simples: horas até 90% no ritmo atual")
             ui.tabela(prev.rename(columns={"componente": "Componente", "pp_por_hora": "Desgaste (p.p./h)",
                                            "desgaste_atual": "Desgaste atual (%)",
                                            "horas_ate_90pct": "Horas até 90%"}),
